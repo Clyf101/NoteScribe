@@ -1,1 +1,12 @@
-[{"id":"5d8c3b59-b143-4862-8e2c-fe9dcd51139a","title":"Shopping List","text":"Milk, bread, eggs"},{"id":"25b091e9-14b1-4976-ac8c-61d61d22269a","title":"ToDo","text":"Clean the kitchen, do laundry"}]
+[
+{
+"id":"5d8c3b59-b143-4862-8e2c-fe9dcd51139a",
+"title":"Shopping List",
+"text":"Milk, bread, eggs"
+},
+{
+"id":"25b091e9-14b1-4976-ac8c-61d61d22269a",
+"title":"ToDo",
+"text":"Clean the kitchen, do laundry"
+}
+]

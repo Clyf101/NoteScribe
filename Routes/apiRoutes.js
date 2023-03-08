@@ -1,15 +1,59 @@
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3001;
+const fs = require("fs");
+const path = require("path");
+const uuid = require("uuid");
 
-// Middleware for parsing JSON and urlencoded form data
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+const notesDB = path.join(__dirname, "../db.json");
 
-// Require routes
-require('./routes/apiRoutes')(app);
+module.exports = function(app) {
+  app.get("/api/notes", function(req, res) {
+    fs.readFile(notesDB, "utf8", function(err, data) {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: "Error getting notes" });
+      }
+      res.json(JSON.parse(data));
+    });
+  });
 
-app.listen(PORT, () =>
-  console.log(`App listening at http://localhost:${PORT} 🚀`)
-);
+  app.post("/api/notes", function(req, res) {
+    fs.readFile(notesDB, "utf8", function(err, data) {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: "Error saving note" });
+      }
+      const notes = JSON.parse(data);
+      const newNote = {
+        id: uuid.v4(),
+        title: req.body.title,
+        text: req.body.text
+      };
+      notes.push(newNote);
+      fs.writeFile(notesDB, JSON.stringify(notes), function(err) {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({ error: "Error saving note" });
+        }
+        res.json(newNote);
+      });
+    });
+  });
+
+  app.delete("/api/notes/:id", function(req, res) {
+    const id = req.params.id;
+    fs.readFile(notesDB, "utf8", function(err, data) {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: "Error deleting note" });
+      }
+      const notes = JSON.parse(data);
+      const filteredNotes = notes.filter(note => note.id !== id);
+      fs.writeFile(notesDB, JSON.stringify(filteredNotes), function(err) {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({ error: "Error deleting note" });
+        }
+        res.sendStatus(200);
+      });
+    });
+  });
+};
