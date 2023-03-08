@@ -1,59 +1,29 @@
-const fs = require("fs");
-const path = require("path");
-const uuid = require("uuid");
+const notesDB = require("../db/notesDB");
+const { v4: uuidv4 } = require("uuid");
 
-const notesDB = path.join(__dirname, "../db.json");
-
-module.exports = function(app) {
-  app.get("/api/notes", function(req, res) {
-    fs.readFile(notesDB, "utf8", function(err, data) {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ error: "Error getting notes" });
-      }
-      res.json(JSON.parse(data));
-    });
+module.exports = (app) => {
+  app.get("/api/notes", (req, res) => {
+    res.json(notesDB);
   });
 
-  app.post("/api/notes", function(req, res) {
-    fs.readFile(notesDB, "utf8", function(err, data) {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ error: "Error saving note" });
-      }
-      const notes = JSON.parse(data);
-      const newNote = {
-        id: uuid.v4(),
-        title: req.body.title,
-        text: req.body.text
-      };
-      notes.push(newNote);
-      fs.writeFile(notesDB, JSON.stringify(notes), function(err) {
-        if (err) {
-          console.log(err);
-          return res.status(500).json({ error: "Error saving note" });
-        }
-        res.json(newNote);
-      });
-    });
+  app.post("/api/notes", (req, res) => {
+    const newNote = {
+      id: uuidv4(),
+      title: req.body.title,
+      text: req.body.text,
+    };
+    notesDB.push(newNote);
+    res.json(notesDB);
   });
 
-  app.delete("/api/notes/:id", function(req, res) {
-    const id = req.params.id;
-    fs.readFile(notesDB, "utf8", function(err, data) {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ error: "Error deleting note" });
-      }
-      const notes = JSON.parse(data);
-      const filteredNotes = notes.filter(note => note.id !== id);
-      fs.writeFile(notesDB, JSON.stringify(filteredNotes), function(err) {
-        if (err) {
-          console.log(err);
-          return res.status(500).json({ error: "Error deleting note" });
-        }
-        res.sendStatus(200);
-      });
-    });
+  app.delete("/api/notes/:id", (req, res) => {
+    const noteId = req.params.id;
+    const index = notesDB.findIndex((note) => note.id === noteId);
+    if (index !== -1) {
+      notesDB.splice(index, 1);
+      res.json(notesDB);
+    } else {
+      res.status(404).send(`Note with ID ${noteId} not found`);
+    }
   });
 };
